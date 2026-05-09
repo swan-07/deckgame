@@ -114,10 +114,17 @@
     box-shadow: var(--shadow);
   }
 
-  .card:hover .card-inner,
+  .card.flipped .card-inner,
   .card:focus-visible .card-inner {
     transform: rotateY(180deg);
     box-shadow: 0 14px 28px rgba(0, 0, 0, 0.55);
+  }
+
+  @media (hover: hover) {
+    .card:hover .card-inner {
+      transform: rotateY(180deg);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.55);
+    }
   }
 
   .card-face,
@@ -305,10 +312,29 @@
       card.appendChild(inner);
 
       const fullName = `${rank.name} of ${suit.name}`;
+      card.dataset.name = fullName;
       card.addEventListener("mouseenter", () => showCard(fullName));
       card.addEventListener("focus", () => showCard(fullName));
+      card.addEventListener("click", () => toggleFlip(card, fullName));
+      card.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggleFlip(card, fullName);
+        }
+      });
 
       return card;
+    }
+
+    let activeCard = null;
+    function toggleFlip(card, fullName) {
+      if (activeCard && activeCard !== card) {
+        activeCard.classList.remove("flipped");
+      }
+      const willFlip = !card.classList.contains("flipped");
+      card.classList.toggle("flipped", willFlip);
+      activeCard = willFlip ? card : null;
+      if (willFlip) showCard(fullName);
     }
 
     function showCard(name) {
