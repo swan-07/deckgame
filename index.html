@@ -12,8 +12,9 @@
     --bg-felt: #14693f;
     --card-bg: #fffdf7;
     --card-border: #d8d2bf;
-    --back-primary: #8b1e2d;
-    --back-secondary: #f4d35e;
+    --info-bg: #1a1a1a;
+    --info-fg: #fffdf7;
+    --info-accent: #f4d35e;
     --shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
   }
 
@@ -30,48 +31,18 @@
   }
 
   header {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    padding: 24px 32px;
-    background: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(6px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 24px 32px 8px;
+    text-align: center;
   }
 
   h1 {
-    margin: 0 0 12px 0;
+    margin: 0;
     font-size: 28px;
     letter-spacing: 1px;
   }
 
-  #info {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 4px 16px;
-    font-size: 16px;
-    line-height: 1.5;
-    min-height: 110px;
-  }
-
-  #info .label {
-    font-weight: 700;
-    opacity: 0.75;
-    text-transform: uppercase;
-    font-size: 12px;
-    letter-spacing: 1.2px;
-    align-self: center;
-  }
-
-  #info .value { align-self: center; }
-
-  #card-name {
-    font-size: 22px;
-    font-weight: 700;
-  }
-
   main {
-    padding: 32px;
+    padding: 24px 32px 48px;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 24px;
@@ -128,7 +99,7 @@
   }
 
   .card-face,
-  .card-back {
+  .card-info {
     position: absolute;
     inset: 0;
     backface-visibility: hidden;
@@ -141,36 +112,48 @@
   .card-face {
     background: var(--card-bg);
     color: var(--black);
-    transform: rotateY(180deg);
   }
 
   .card-face.red { color: var(--red); }
 
-  .card-back {
-    background:
-      repeating-linear-gradient(
-        45deg,
-        var(--back-primary) 0,
-        var(--back-primary) 8px,
-        #6b1622 8px,
-        #6b1622 16px
-      );
-    border: 6px solid var(--back-secondary);
+  .card-info {
+    transform: rotateY(180deg);
+    background: var(--info-bg);
+    color: var(--info-fg);
+    border: 1px solid #333;
+    padding: 10px 8px;
     display: flex;
-    align-items: center;
+    flex-direction: column;
     justify-content: center;
+    gap: 6px;
+    text-align: center;
   }
 
-  .card-back::after {
-    content: "";
-    width: 60%;
-    height: 78%;
-    border: 2px solid var(--back-secondary);
-    border-radius: 6px;
-    background:
-      radial-gradient(circle at center,
-        rgba(244, 211, 94, 0.25) 0%,
-        rgba(244, 211, 94, 0) 60%);
+  .card-info .name {
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 1.2;
+    color: var(--info-accent);
+    margin-bottom: 4px;
+    word-wrap: break-word;
+  }
+
+  .card-info .row {
+    font-size: 10px;
+    line-height: 1.25;
+  }
+
+  .card-info .row .label {
+    display: block;
+    font-size: 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+
+  .card-info .row .value {
+    font-size: 11px;
+    font-weight: 600;
   }
 
   .corner {
@@ -199,8 +182,6 @@
     line-height: 1;
   }
 
-  .card-face.is-face .center-suit { display: none; }
-
   .face-letter {
     position: absolute;
     top: 50%;
@@ -219,24 +200,14 @@
     .center-suit { font-size: 28px; }
     .face-letter { font-size: 32px; }
     .suit-header { font-size: 24px; }
+    .card-info .name { font-size: 11px; }
+    .card-info .row .label { font-size: 7px; }
+    .card-info .row .value { font-size: 10px; }
   }
 </style>
 </head>
 <body>
-  <header>
-    <h1>The Deck Game</h1>
-    <div id="info">
-      <div class="label">Card</div>
-      <div class="value" id="card-name">Hover a card to see details</div>
-      <div class="label">Winner</div>
-      <div class="value" id="winner">TBA</div>
-      <div class="label">Game</div>
-      <div class="value" id="game">TBA</div>
-      <div class="label">Sponsor</div>
-      <div class="value" id="sponsor">TBA</div>
-    </div>
-  </header>
-
+  <header><h1>The Deck Game</h1></header>
   <main id="board"></main>
 
   <script>
@@ -266,10 +237,6 @@
     const FACE_LETTERS = new Set(["J", "Q", "K", "A"]);
 
     const board = document.getElementById("board");
-    const cardNameEl = document.getElementById("card-name");
-    const winnerEl = document.getElementById("winner");
-    const gameEl = document.getElementById("game");
-    const sponsorEl = document.getElementById("sponsor");
 
     function buildCard(rank, suit) {
       const card = document.createElement("div");
@@ -279,12 +246,8 @@
       const inner = document.createElement("div");
       inner.className = "card-inner";
 
-      const back = document.createElement("div");
-      back.className = "card-back";
-
       const face = document.createElement("div");
       face.className = "card-face" + (suit.color === "red" ? " red" : "");
-      if (FACE_LETTERS.has(rank.short)) face.classList.add("is-face");
 
       const tl = document.createElement("div");
       tl.className = "corner tl";
@@ -308,18 +271,24 @@
         face.appendChild(center);
       }
 
-      inner.append(back, face);
+      const fullName = `${rank.name} of ${suit.name}`;
+      const info = document.createElement("div");
+      info.className = "card-info";
+      info.innerHTML = `
+        <div class="name">${fullName}</div>
+        <div class="row"><span class="label">Winner</span><span class="value">TBA</span></div>
+        <div class="row"><span class="label">Game</span><span class="value">TBA</span></div>
+        <div class="row"><span class="label">Sponsor</span><span class="value">TBA</span></div>
+      `;
+
+      inner.append(face, info);
       card.appendChild(inner);
 
-      const fullName = `${rank.name} of ${suit.name}`;
-      card.dataset.name = fullName;
-      card.addEventListener("mouseenter", () => showCard(fullName));
-      card.addEventListener("focus", () => showCard(fullName));
-      card.addEventListener("click", () => toggleFlip(card, fullName));
+      card.addEventListener("click", () => toggleFlip(card));
       card.addEventListener("keydown", (e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          toggleFlip(card, fullName);
+          toggleFlip(card);
         }
       });
 
@@ -327,21 +296,13 @@
     }
 
     let activeCard = null;
-    function toggleFlip(card, fullName) {
+    function toggleFlip(card) {
       if (activeCard && activeCard !== card) {
         activeCard.classList.remove("flipped");
       }
       const willFlip = !card.classList.contains("flipped");
       card.classList.toggle("flipped", willFlip);
       activeCard = willFlip ? card : null;
-      if (willFlip) showCard(fullName);
-    }
-
-    function showCard(name) {
-      cardNameEl.textContent = name;
-      winnerEl.textContent = "TBA";
-      gameEl.textContent = "TBA";
-      sponsorEl.textContent = "TBA";
     }
 
     SUITS.forEach(suit => {
