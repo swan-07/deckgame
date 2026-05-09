@@ -4,18 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Deck Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --red: #c0392b;
-    --black: #1a1a1a;
-    --bg: #0f5132;
-    --bg-felt: #14693f;
-    --card-bg: #fffdf7;
-    --card-border: #d8d2bf;
-    --info-bg: #1a1a1a;
-    --info-fg: #fffdf7;
-    --info-accent: #f4d35e;
-    --shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+    --bg-1: #050510;
+    --bg-2: #0d0a1f;
+    --bg-3: #1a1138;
+    --glow: #a855f7;
+    --glow-2: #22d3ee;
+    --glow-3: #f472b6;
+    --ink: #f5f3ff;
+    --ink-dim: rgba(245, 243, 255, 0.55);
+    --hairline: rgba(255, 255, 255, 0.08);
+    --card-bg: linear-gradient(160deg, #fafafa 0%, #e8e8f0 100%);
+    --card-red: #ef4444;
+    --card-black: #0a0a0a;
+    --info-bg: linear-gradient(160deg, rgba(20, 14, 40, 0.92), rgba(40, 20, 70, 0.92));
   }
 
   * { box-sizing: border-box; }
@@ -23,79 +29,145 @@
   html, body {
     margin: 0;
     padding: 0;
-    font-family: "Helvetica Neue", Arial, sans-serif;
-    background:
-      radial-gradient(ellipse at center, var(--bg-felt) 0%, var(--bg) 80%);
-    color: #fff;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--ink);
     min-height: 100vh;
+    background:
+      radial-gradient(1200px 800px at 15% -10%, rgba(168, 85, 247, 0.18), transparent 60%),
+      radial-gradient(1000px 700px at 110% 20%, rgba(34, 211, 238, 0.14), transparent 55%),
+      radial-gradient(900px 700px at 50% 120%, rgba(244, 114, 182, 0.12), transparent 60%),
+      linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 50%, var(--bg-1) 100%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
   }
 
   header {
-    padding: 24px 32px 8px;
+    padding: 56px 32px 24px;
     text-align: center;
+    position: relative;
   }
 
   h1 {
     margin: 0;
-    font-size: 28px;
-    letter-spacing: 1px;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 50%, #67e8f9 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .tagline {
+    margin-top: 10px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
   }
 
   main {
-    padding: 24px 32px 48px;
+    padding: 24px 32px 80px;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 24px;
-    max-width: 1200px;
+    gap: 32px;
+    max-width: 1240px;
     margin: 0 auto;
+    position: relative;
   }
 
   .suit-column {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
   }
 
   .suit-header {
-    font-size: 32px;
-    margin-bottom: 8px;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    margin-bottom: 10px;
     user-select: none;
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--hairline);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 
-  .suit-header.red { color: var(--red); }
-  .suit-header.black { color: #eee; }
+  .suit-header.red { color: #fb7185; text-shadow: 0 0 24px rgba(244, 63, 94, 0.45); }
+  .suit-header.black { color: #e5e7eb; text-shadow: 0 0 24px rgba(255, 255, 255, 0.25); }
 
   .card {
     width: 100%;
-    max-width: 140px;
+    max-width: 150px;
     aspect-ratio: 2.5 / 3.5;
-    perspective: 1000px;
+    perspective: 1200px;
     cursor: pointer;
     user-select: none;
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), z-index 0s linear 0s;
+    z-index: 1;
+  }
+
+  .card:hover,
+  .card.flipped {
+    transform: scale(1.18) translateY(-6px);
+    z-index: 5;
   }
 
   .card-inner {
     position: relative;
     width: 100%;
     height: 100%;
-    transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease;
     transform-style: preserve-3d;
-    border-radius: 8px;
-    box-shadow: var(--shadow);
+    border-radius: 14px;
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.35),
+      0 0 0 1px rgba(255, 255, 255, 0.04);
   }
 
   .card.flipped .card-inner,
   .card:focus-visible .card-inner {
     transform: rotateY(180deg);
-    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.55);
   }
 
   @media (hover: hover) {
     .card:hover .card-inner {
       transform: rotateY(180deg);
-      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.55);
+      box-shadow:
+        0 24px 60px rgba(168, 85, 247, 0.35),
+        0 0 0 1px rgba(168, 85, 247, 0.25),
+        0 0 80px rgba(168, 85, 247, 0.15);
     }
+  }
+
+  .card.flipped .card-inner {
+    box-shadow:
+      0 24px 60px rgba(168, 85, 247, 0.35),
+      0 0 0 1px rgba(168, 85, 247, 0.25),
+      0 0 80px rgba(168, 85, 247, 0.15);
   }
 
   .card-face,
@@ -104,72 +176,105 @@
     inset: 0;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    border-radius: 8px;
-    border: 1px solid var(--card-border);
+    border-radius: 14px;
     overflow: hidden;
   }
 
   .card-face {
     background: var(--card-bg);
-    color: var(--black);
+    color: var(--card-black);
+    border: 1px solid rgba(0, 0, 0, 0.08);
   }
 
-  .card-face.red { color: var(--red); }
+  .card-face.red { color: var(--card-red); }
+
+  .card-face::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 30% 0%, rgba(255,255,255,0.6), transparent 50%),
+      radial-gradient(circle at 100% 100%, rgba(0,0,0,0.04), transparent 60%);
+    pointer-events: none;
+  }
 
   .card-info {
     transform: rotateY(180deg);
     background: var(--info-bg);
-    color: var(--info-fg);
-    border: 1px solid #333;
-    padding: 10px 8px;
+    color: var(--ink);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    padding: 14px 12px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 6px;
+    gap: 10px;
     text-align: center;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
 
+  .card-info::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(168, 85, 247, 0.25), transparent 60%),
+      radial-gradient(circle at 50% 100%, rgba(34, 211, 238, 0.15), transparent 60%);
+    pointer-events: none;
+  }
+
+  .card-info > * { position: relative; z-index: 1; }
+
   .card-info .name {
+    font-family: "Space Grotesk", sans-serif;
     font-weight: 700;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.2;
-    color: var(--info-accent);
-    margin-bottom: 4px;
-    word-wrap: break-word;
+    letter-spacing: -0.01em;
+    background: linear-gradient(135deg, #ffffff, #c4b5fd);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    margin-bottom: 6px;
   }
 
   .card-info .row {
-    font-size: 10px;
-    line-height: 1.25;
+    line-height: 1.2;
   }
 
   .card-info .row .label {
     display: block;
+    font-family: "JetBrains Mono", monospace;
     font-size: 8px;
-    letter-spacing: 1px;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    opacity: 0.6;
+    color: var(--ink-dim);
+    margin-bottom: 2px;
   }
 
   .card-info .row .value {
+    font-family: "Inter", sans-serif;
     font-size: 11px;
     font-weight: 600;
+    color: var(--ink);
   }
 
   .corner {
     position: absolute;
-    font-weight: 700;
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 600;
     line-height: 1;
     text-align: center;
   }
 
-  .corner .rank { font-size: 16px; }
-  .corner .suit { font-size: 16px; }
+  .corner .rank { font-size: 18px; letter-spacing: -0.02em; }
+  .corner .suit { font-size: 14px; margin-top: 2px; }
 
-  .corner.tl { top: 6px; left: 8px; }
+  .corner.tl { top: 8px; left: 10px; }
   .corner.br {
-    bottom: 6px;
-    right: 8px;
+    bottom: 8px;
+    right: 10px;
     transform: rotate(180deg);
   }
 
@@ -178,8 +283,9 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 44px;
+    font-size: 52px;
     line-height: 1;
+    opacity: 0.95;
   }
 
   .face-letter {
@@ -187,27 +293,34 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 48px;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 56px;
     font-weight: 700;
-    font-family: "Times New Roman", serif;
-    letter-spacing: -2px;
+    letter-spacing: -0.04em;
   }
 
   @media (max-width: 720px) {
-    main { padding: 16px; gap: 12px; }
-    h1 { font-size: 22px; }
-    .corner .rank, .corner .suit { font-size: 12px; }
-    .center-suit { font-size: 28px; }
-    .face-letter { font-size: 32px; }
-    .suit-header { font-size: 24px; }
+    main { padding: 16px 12px 40px; gap: 14px; }
+    header { padding: 32px 16px 16px; }
+    .suit-column { gap: 10px; }
+    .suit-header { font-size: 24px; width: 42px; height: 42px; border-radius: 12px; }
+    .corner .rank { font-size: 13px; }
+    .corner .suit { font-size: 11px; }
+    .center-suit { font-size: 32px; }
+    .face-letter { font-size: 36px; }
+    .card-info { padding: 10px 8px; gap: 6px; }
     .card-info .name { font-size: 11px; }
     .card-info .row .label { font-size: 7px; }
     .card-info .row .value { font-size: 10px; }
+    .card:hover, .card.flipped { transform: scale(1.1) translateY(-4px); }
   }
 </style>
 </head>
 <body>
-  <header><h1>The Deck Game</h1></header>
+  <header>
+    <h1>The Deck Game</h1>
+    <div class="tagline">52 cards · 4 suits · one winner</div>
+  </header>
   <main id="board"></main>
 
   <script>
@@ -235,7 +348,6 @@
     ];
 
     const FACE_LETTERS = new Set(["J", "Q", "K", "A"]);
-
     const board = document.getElementById("board");
 
     function buildCard(rank, suit) {
