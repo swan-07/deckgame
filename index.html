@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Deck Game</title>
+<style>
+  :root {
+    --red: #c0392b;
+    --black: #1a1a1a;
+    --bg: #0f5132;
+    --bg-felt: #14693f;
+    --card-bg: #fffdf7;
+    --card-border: #d8d2bf;
+    --back-primary: #8b1e2d;
+    --back-secondary: #f4d35e;
+    --shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    background:
+      radial-gradient(ellipse at center, var(--bg-felt) 0%, var(--bg) 80%);
+    color: #fff;
+    min-height: 100vh;
+  }
+
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: 24px 32px;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  h1 {
+    margin: 0 0 12px 0;
+    font-size: 28px;
+    letter-spacing: 1px;
+  }
+
+  #info {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 16px;
+    font-size: 16px;
+    line-height: 1.5;
+    min-height: 110px;
+  }
+
+  #info .label {
+    font-weight: 700;
+    opacity: 0.75;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1.2px;
+    align-self: center;
+  }
+
+  #info .value { align-self: center; }
+
+  #card-name {
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  main {
+    padding: 32px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .suit-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .suit-header {
+    font-size: 32px;
+    margin-bottom: 8px;
+    user-select: none;
+  }
+
+  .suit-header.red { color: var(--red); }
+  .suit-header.black { color: #eee; }
+
+  .card {
+    width: 100%;
+    max-width: 140px;
+    aspect-ratio: 2.5 / 3.5;
+    perspective: 1000px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+    transform-style: preserve-3d;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+  }
+
+  .card.flipped .card-inner,
+  .card:focus-visible .card-inner {
+    transform: rotateY(180deg);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.55);
+  }
+
+  @media (hover: hover) {
+    .card:hover .card-inner {
+      transform: rotateY(180deg);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.55);
+    }
+  }
+
+  .card-face,
+  .card-back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    overflow: hidden;
+  }
+
+  .card-face {
+    background: var(--card-bg);
+    color: var(--black);
+    transform: rotateY(180deg);
+  }
+
+  .card-face.red { color: var(--red); }
+
+  .card-back {
+    background:
+      repeating-linear-gradient(
+        45deg,
+        var(--back-primary) 0,
+        var(--back-primary) 8px,
+        #6b1622 8px,
+        #6b1622 16px
+      );
+    border: 6px solid var(--back-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card-back::after {
+    content: "";
+    width: 60%;
+    height: 78%;
+    border: 2px solid var(--back-secondary);
+    border-radius: 6px;
+    background:
+      radial-gradient(circle at center,
+        rgba(244, 211, 94, 0.25) 0%,
+        rgba(244, 211, 94, 0) 60%);
+  }
+
+  .corner {
+    position: absolute;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+  }
+
+  .corner .rank { font-size: 16px; }
+  .corner .suit { font-size: 16px; }
+
+  .corner.tl { top: 6px; left: 8px; }
+  .corner.br {
+    bottom: 6px;
+    right: 8px;
+    transform: rotate(180deg);
+  }
+
+  .center-suit {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 44px;
+    line-height: 1;
+  }
+
+  .card-face.is-face .center-suit { display: none; }
+
+  .face-letter {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    font-weight: 700;
+    font-family: "Times New Roman", serif;
+    letter-spacing: -2px;
+  }
+
+  @media (max-width: 720px) {
+    main { padding: 16px; gap: 12px; }
+    h1 { font-size: 22px; }
+    .corner .rank, .corner .suit { font-size: 12px; }
+    .center-suit { font-size: 28px; }
+    .face-letter { font-size: 32px; }
+    .suit-header { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>The Deck Game</h1>
+    <div id="info">
+      <div class="label">Card</div>
+      <div class="value" id="card-name">Hover a card to see details</div>
+      <div class="label">Winner</div>
+      <div class="value" id="winner">TBA</div>
+      <div class="label">Game</div>
+      <div class="value" id="game">TBA</div>
+      <div class="label">Sponsor</div>
+      <div class="value" id="sponsor">TBA</div>
+    </div>
+  </header>
+
+  <main id="board"></main>
+
+  <script>
+    const SUITS = [
+      { name: "Spades",   symbol: "♠", color: "black" },
+      { name: "Hearts",   symbol: "♥", color: "red" },
+      { name: "Diamonds", symbol: "♦", color: "red" },
+      { name: "Clubs",    symbol: "♣", color: "black" }
+    ];
+
+    const RANKS = [
+      { short: "2",  name: "Two" },
+      { short: "3",  name: "Three" },
+      { short: "4",  name: "Four" },
+      { short: "5",  name: "Five" },
+      { short: "6",  name: "Six" },
+      { short: "7",  name: "Seven" },
+      { short: "8",  name: "Eight" },
+      { short: "9",  name: "Nine" },
+      { short: "10", name: "Ten" },
+      { short: "J",  name: "Jack" },
+      { short: "Q",  name: "Queen" },
+      { short: "K",  name: "King" },
+      { short: "A",  name: "Ace" }
+    ];
+
+    const FACE_LETTERS = new Set(["J", "Q", "K", "A"]);
+
+    const board = document.getElementById("board");
+    const cardNameEl = document.getElementById("card-name");
+    const winnerEl = document.getElementById("winner");
+    const gameEl = document.getElementById("game");
+    const sponsorEl = document.getElementById("sponsor");
+
+    function buildCard(rank, suit) {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.tabIndex = 0;
+
+      const inner = document.createElement("div");
+      inner.className = "card-inner";
+
+      const back = document.createElement("div");
+      back.className = "card-back";
+
+      const face = document.createElement("div");
+      face.className = "card-face" + (suit.color === "red" ? " red" : "");
+      if (FACE_LETTERS.has(rank.short)) face.classList.add("is-face");
+
+      const tl = document.createElement("div");
+      tl.className = "corner tl";
+      tl.innerHTML = `<div class="rank">${rank.short}</div><div class="suit">${suit.symbol}</div>`;
+
+      const br = document.createElement("div");
+      br.className = "corner br";
+      br.innerHTML = `<div class="rank">${rank.short}</div><div class="suit">${suit.symbol}</div>`;
+
+      face.append(tl, br);
+
+      if (FACE_LETTERS.has(rank.short)) {
+        const letter = document.createElement("div");
+        letter.className = "face-letter";
+        letter.textContent = rank.short;
+        face.appendChild(letter);
+      } else {
+        const center = document.createElement("div");
+        center.className = "center-suit";
+        center.textContent = suit.symbol;
+        face.appendChild(center);
+      }
+
+      inner.append(back, face);
+      card.appendChild(inner);
+
+      const fullName = `${rank.name} of ${suit.name}`;
+      card.dataset.name = fullName;
+      card.addEventListener("mouseenter", () => showCard(fullName));
+      card.addEventListener("focus", () => showCard(fullName));
+      card.addEventListener("click", () => toggleFlip(card, fullName));
+      card.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggleFlip(card, fullName);
+        }
+      });
+
+      return card;
+    }
+
+    let activeCard = null;
+    function toggleFlip(card, fullName) {
+      if (activeCard && activeCard !== card) {
+        activeCard.classList.remove("flipped");
+      }
+      const willFlip = !card.classList.contains("flipped");
+      card.classList.toggle("flipped", willFlip);
+      activeCard = willFlip ? card : null;
+      if (willFlip) showCard(fullName);
+    }
+
+    function showCard(name) {
+      cardNameEl.textContent = name;
+      winnerEl.textContent = "TBA";
+      gameEl.textContent = "TBA";
+      sponsorEl.textContent = "TBA";
+    }
+
+    SUITS.forEach(suit => {
+      const col = document.createElement("div");
+      col.className = "suit-column";
+
+      const header = document.createElement("div");
+      header.className = `suit-header ${suit.color}`;
+      header.textContent = suit.symbol;
+      col.appendChild(header);
+
+      RANKS.forEach(rank => col.appendChild(buildCard(rank, suit)));
+
+      board.appendChild(col);
+    });
+  </script>
+</body>
+</html>
